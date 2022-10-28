@@ -1,3 +1,4 @@
 ## Запуск ClickHouse
 
-docker compose up -d
+docker compose --env-file ../.env up -d --build
+

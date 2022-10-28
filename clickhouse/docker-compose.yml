@@ -1,13 +1,22 @@
 version: '3.5'
 
+x-env:
+  &env
+  - UGC_KAFKA_TOPIC_FILM_LASTTIME
+  - UGC_CH_KAFKA_BROKER
+
+x-healthcheck: &healthcheck wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+
 services:
   zookeeper:
     image: zookeeper:3.5
     container_name: zookeeper
     hostname: zookeeper
+    expose:
+      - 2181
 
   clickhouse-node1:
-    image: yandex/clickhouse-server:20.4
+    image: yandex/clickhouse-server:21.3.20.1
     container_name: clickhouse-node1
     hostname: clickhouse-node1
     ports:
@@ -15,43 +24,51 @@ services:
       - "9900:9000"
     volumes:
       - ./data/node1:/etc/clickhouse-server
+      # - ./data/node1/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     depends_on:
       - zookeeper
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      test: *healthcheck
+    environment: *env
 
   clickhouse-node2:
-    image: yandex/clickhouse-server:20.4
+    image: yandex/clickhouse-server:21.3.20.1
     container_name: clickhouse-node2
     hostname: clickhouse-node2
     volumes:
       - ./data/node2:/etc/clickhouse-server
+      - ./data/node2/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     depends_on:
       - zookeeper
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      test: *healthcheck
+    environment: *env
 
   clickhouse-node3:
-    image: yandex/clickhouse-server:20.4
+    image: yandex/clickhouse-server:21.3.20.1
     container_name: clickhouse-node3
     hostname: clickhouse-node3
     volumes:
       - ./data/node3:/etc/clickhouse-server
+      - ./data/node3/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     depends_on:
       - zookeeper
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      test: *healthcheck
+    environment: *env
 
   clickhouse-node4:
-    image: yandex/clickhouse-server:20.4
+    image: yandex/clickhouse-server:21.3.20.1
     container_name: clickhouse-node4
     hostname: clickhouse-node4
     volumes:
       - ./data/node4:/etc/clickhouse-server
+      - ./data/node4/docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d
     depends_on:
       - zookeeper
     healthcheck:
-      test: wget --no-verbose --tries=1 --spider http://localhost:8123/ping || exit 1
+      test: *healthcheck
+    environment: *env
 
 networks:
   default:
