@@ -1,0 +1,30 @@
+version: "3.9"
+name: yap_ugc
+services:
+  ugc:
+    image: yap_ugc/ugc
+    build:
+      context: .
+    env_file:
+      - .env.docker
+    container_name: ugc
+    hostname: ugc
+    expose:
+      - 8000
+    entrypoint: /code/entrypoint.sh
+  nginx:
+    container_name: ugc_nginx
+    hostname: ugc_nginx
+    image: nginx:1.21.6
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+    ports:
+      - 80:80
+    depends_on:
+      - ugc
+
+networks:
+  default:
+    name: yap_ugc_network
+    external: true

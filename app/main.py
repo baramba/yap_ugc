@@ -1,23 +1,42 @@
 import logging
 
 import uvicorn
+from api.v1 import user_events
+from config.settings import settings
+from db import kafka
 from fastapi import FastAPI
+from fastapi.responses import ORJSONResponse
 from kafka import KafkaProducer
 
-from app.api.v1 import user_events
-from app.config.settings import settings
-from app.db import kafka
+log: logging.Logger = logging.getLogger("ucg.{0}".format(__name__))
 
-log = logging.getLogger("ucg.{0}".format(__name__))
+description: str = """
+# Сервис
+yap_ugc помогает сохранять различные события для последующего нализа.
 
+## Реализованные типы событий:
+  - Временная метка последнего места просмотра фильма
 
-log.info("Инициализация приложения")
+"""
+
+tags_metadata = [
+    {
+        "name": "films",
+        "description": "События, связанные с фильмами.",
+    },
+    {
+        "name": "about",
+        "description": "Информация о сервисе.",
+    },
+]
 
 app: FastAPI = FastAPI(
     title=settings.PROJECT_NAME,
-    # docs_url="/api/openapi",
-    # openapi_url="/api/openapi.json",
-    # default_response_class=ORJSONResponse,
+    description=description,
+    docs_url="/api/docs",
+    openapi_url="/api/openapi.json",
+    default_response_class=ORJSONResponse,
+    openapi_tags=tags_metadata,
 )
 
 
@@ -26,7 +45,7 @@ async def startup() -> None:
 
     kafka.producer = KafkaProducer(
         bootstrap_servers=[
-            "{0}:{1}".format("localhost", "9092"),
+            "{0}:{1}".format(settings.KAFKA_URL.host, settings.KAFKA_URL.port),
         ],
         client_id=settings.KAFKA_CLIENT_ID,
     )
@@ -34,26 +53,13 @@ async def startup() -> None:
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
-    kafka.producer.flush()
-    kafka.producer.close()
+    if kafka.producer:
+        kafka.producer.flush()
+        kafka.producer.close()
 
 
-@app.get("/")
+@app.get("/", tags=["about"])
 async def root():
-    def on_send_success(record_meta):
-        log.debug(record_meta.topic)
-        log.debug(record_meta.partition)
-        log.debug(record_meta.offset)
-
-    def on_send_error(excp):
-        log.error("I am an errback", exc_info=excp)
-
-    future = (
-        kafka.producer.send("user_films_lasttime", key=b"key", value=b"value")
-        .add_callback(on_send_success)
-        .add_errback(on_send_error)
-    )
-    future.get(1)
     return {
         "message": {
             "Project": settings.PROJECT_NAME,
@@ -62,8 +68,7 @@ async def root():
     }
 
 
-app.include_router(user_events.router, prefix="/api/v1/user", tags=["user events"])
-
+app.include_router(user_events.router, prefix="/api/v1/films", tags=["films"])
 
 if __name__ == "__main__":
     uvicorn.run(

@@ -1,0 +1,7 @@
+@startuml Компоненты
+
+[Nginx]->[FastApi]
+[FastApi]->[Kafka]
+[Kafka]->[Clickhouse]
+
+@enduml

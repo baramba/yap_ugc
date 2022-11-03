@@ -1,10 +1,10 @@
 import uuid
 from datetime import timedelta
 
-from app.models.basemodel import BaseApiModel
+from models.basemodel import BaseApiModel
 
 
-class MovieLasttime(BaseApiModel):
+class FilmLasttime(BaseApiModel):
     user_id: uuid.UUID
     film_id: uuid.UUID
     lasttime: timedelta

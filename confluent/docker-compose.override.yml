@@ -4,12 +4,15 @@ services:
     image: confluentinc/cp-zookeeper:7.2.1
     hostname: zookeeper_ka
     container_name: zookeeper_ka
+    ports:
+      - "2181:2181"
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
       ZOOKEEPER_TICK_TIME: 2000
     expose:
       - 2181
       - 2000
+
   broker:
     image: confluentinc/cp-server:7.2.1
     hostname: broker
@@ -17,8 +20,11 @@ services:
     depends_on:
       - zookeeper_ka
     expose:
-      - 9101
       - 9092
+      - 9101
+    ports:
+      - "${KAFKA_BROKER_PORT}:9092"
+      - "9101:9101"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: 'zookeeper_ka:2181'
@@ -50,8 +56,8 @@ services:
     container_name: control-center
     depends_on:
       - broker
-    expose:
-      - 9021
+    ports:
+      - "9021:9021"
     environment:
       CONTROL_CENTER_BOOTSTRAP_SERVERS: 'broker:29092'
       CONTROL_CENTER_CONNECT_CONNECT-DEFAULT_CLUSTER: 'connect:8083'

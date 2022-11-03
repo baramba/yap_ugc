@@ -5,10 +5,9 @@ clickhouse client -n <<-EOSQL
 
     CREATE DATABASE ugc_shard ON CLUSTER company_cluster;
     CREATE DATABASE ugc_replica ON CLUSTER company_cluster;
-    CREATE TABLE ugc_user_film_lasttime_rep ON CLUSTER company_cluster (user_id UUID, film_id UUID, lasttime Int16, event_time DateTime) 
-    Engine=ReplicatedMergeTree('/clickhouse/tables/ugc_shard/{shard}/{table}', '{replica}') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
-    CREATE TABLE default.ugc_user_film_lasttime ON CLUSTER company_cluster (user_id UUID, film_id UUID, lasttime Int16, event_time DateTime) ENGINE = Distributed('company_cluster', '', ugc_user_film_lasttime_rep, rand());
-    CREATE TABLE default.ugc_kafka_film_lasttime_queue ON CLUSTER company_cluster (key UInt64, value UInt64) ENGINE = Kafka() SETTINGS kafka_broker_list = 'broker:9092', kafka_topic_list = 'user_films_lasttime', kafka_group_name = 'ch_cg_01', kafka_format = 'JSONEachRow', kafka_max_block_size = 1048576;
+    CREATE TABLE ugc_user_film_lasttime_rep ON CLUSTER company_cluster (user_id UUID, film_id UUID, lasttime Float32, event_time DateTime64) ENGINE=ReplicatedMergeTree('/clickhouse/tables/ugc_shard/{shard}/{table}', '{replica}') PARTITION BY toYYYYMMDD(event_time) ORDER BY user_id;
+    CREATE TABLE default.ugc_user_film_lasttime ON CLUSTER company_cluster (user_id UUID, film_id UUID, lasttime Float32, event_time DateTime64) ENGINE = Distributed('company_cluster', '', ugc_user_film_lasttime_rep, rand());
+    CREATE TABLE default.ugc_kafka_film_lasttime_queue ON CLUSTER company_cluster (user_id UUID, film_id UUID, lasttime Float32, event_time DateTime64) ENGINE = Kafka() SETTINGS kafka_broker_list = 'broker:29092', kafka_topic_list = 'user_films_lasttime', kafka_group_name = 'ch_cg_01', kafka_format = 'JSONEachRow', kafka_max_block_size = 1048576;
     CREATE MATERIALIZED VIEW default.ugc_kafka_film_lasttime_mv ON CLUSTER company_cluster TO default.ugc_user_film_lasttime AS SELECT * FROM default.ugc_kafka_film_lasttime_queue;
 
 EOSQL
