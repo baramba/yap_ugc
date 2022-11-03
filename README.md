@@ -20,7 +20,7 @@ docker network create -d bridge yap_ugc_network
 ```
 2. Перейтив  папку в confluent и запустить Kafka
 ``` 
-docker compose -f docker-compose.yml --env-file=../.env up -d
+docker compose -f docker-compose.yml --env-file=../.env.docker up -d
 ```
 3. Создать топик user_films_lasttime
 ``` 
@@ -28,7 +28,7 @@ docker compose -f docker-compose.yml exec broker kafka-topics --create --bootstr
 ```
 4. Перейтив папку в clickhouse и запустить Clickhouse
 ``` 
-docker compose -f docker-compose.yml --env-file=../.env up -d
+docker compose -f docker-compose.yml --env-file=../.env.docker up -d
 ```
 5. Документация будет доступна по (URL)[http://127.0.0.1:8000/api/docs]
 
