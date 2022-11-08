@@ -1,6 +1,7 @@
 import logging
 
 import uvicorn
+from aiokafka import AIOKafkaProducer
 from api.v1 import user_events
 from config.settings import settings
 from db import kafka
@@ -42,20 +43,19 @@ app: FastAPI = FastAPI(
 
 @app.on_event("startup")
 async def startup() -> None:
-
-    kafka.producer = KafkaProducer(
-        bootstrap_servers=[
-            "{0}:{1}".format(settings.KAFKA_URL.host, settings.KAFKA_URL.port),
-        ],
+    kafka.producer = AIOKafkaProducer(
+        bootstrap_servers="{0}:{1}".format(
+            settings.KAFKA_URL.host, settings.KAFKA_URL.port
+        ),
         client_id=settings.KAFKA_CLIENT_ID,
     )
+    await kafka.producer.start()
 
 
 @app.on_event("shutdown")
 async def shutdown() -> None:
     if kafka.producer:
-        kafka.producer.flush()
-        kafka.producer.close()
+        await kafka.producer.stop()
 
 
 @app.get("/", tags=["about"])

@@ -1,9 +1,9 @@
 from typing import Optional
 
-from kafka import KafkaProducer
+from aiokafka import AIOKafkaProducer
 
-producer: Optional[KafkaProducer] = None
+producer: Optional[AIOKafkaProducer] = None
 
 
-async def get_kafka_producer() -> Optional[KafkaProducer]:
+async def get_kafka_producer() -> Optional[AIOKafkaProducer]:
     return producer
