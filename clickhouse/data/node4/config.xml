@@ -38,7 +38,7 @@
         <company_cluster>
             <shard>
                 <replica>
-                    <default_database>ugc_shard</default_database>
+                    <default_database>ugc_replica</default_database>
                     <host>clickhouse-node1</host>
                     <port>9000</port>
                 </replica>
